@@ -237,6 +237,7 @@ TEX.painting1 = landscape(31, ['#e8b98f','#f6e4c4'], ['#b39a6e','#8d7a54','#6a60
 function mat(name){
   if (M[name]) return M[name];
   if (TEX[name]) return (M[name] = new THREE.MeshStandardMaterial({ map:TEX[name], roughness: name === 'tile_floor' ? .55 : .95, side:THREE.DoubleSide }));
+  if (name === 'ceiling') return (M.ceiling = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:.95, emissive:0xffffff, emissiveIntensity:.32, side:THREE.DoubleSide }));
   if (name === 'fire_glass') return (M.fire_glass = new THREE.MeshStandardMaterial({ color:0x1a0c06, emissive:0xd8581a, emissiveIntensity:0.55, side:THREE.DoubleSide }));
   if (name === 'glass') return (M.glass = new THREE.MeshPhysicalMaterial({ color:0xa9c3cf, roughness:.05, metalness:0, transparent:true, opacity:.28, side:THREE.DoubleSide, depthWrite:false }));
   const [c, r, m] = spec[name] || spec.misc;
@@ -419,25 +420,22 @@ const room = (pts, cap) => { walk(pts, cap); peek(cap); walk(pts.slice().reverse
 air([[-6,-22,7],[0,-16,5],[4.5,-9.5,2.6],[6.5,-5.2,1.25]], 'Arriving at the front', [9,0,2.4]);
 walk([[6.5,-5.2],[6.5,-2.0],[6.5,-0.4],[6.5,0.8],[6.4,1.9],[6.3,2.4],[6.3,3.1],[6.5,3.7],[5.9,4.0],[5.0,4.05],[4.4,4.05]], 'Porch, utility and lobby');
 walk([[4.4,4.05],[3.8,4.0],[3.0,4.0],[2.3,4.0]], 'Office'); peek('Office');
-walk([[2.3,4.0],[3.1,4.0],[3.75,3.9],[4.0,3.35],[4.0,2.2]], 'Bathroom'); peek('Bathroom');
-walk([[4.0,2.2],[4.0,3.3],[4.25,4.2],[4.4,5.0],[4.2,5.8],[3.6,6.6]], 'Sunroom'); peek('Sunroom');
+walk([[2.3,4.0],[3.1,4.0],[3.9,4.25],[4.4,5.0],[4.2,5.8],[3.6,6.6]], 'Sunroom'); peek('Sunroom');
 walk([[3.6,6.6],[4.3,5.8],[4.5,4.9],[4.95,4.1],[5.9,4.0],[7.5,3.6],[8.6,3.3],[9.8,3.3],[11.0,3.2]], 'Utility to kitchen');
 walk([[11.0,3.2],[12.1,4.1],[13.0,5.0],[14.2,5.0],[15.6,5.6],[17.0,6.6],[17.8,7.6]], 'Lounge: open doors to the garden');
 walk([[17.8,7.6],[18.8,8.0],[19.7,7.1],[19.8,6.0],[19.2,5.6],[18.0,5.6],[16.4,5.15],[15.3,4.7],[14.3,4.2],[14.2,3.7],[14.25,3.15],[14.8,2.9]], 'Lounge: past the wood burner to the hall');
 walk([[14.8,2.9],[16.6,2.95],[18.6,2.9],[20.4,2.9],[21.6,2.95],[22.2,3.1]], 'Stair hall, open to the floor above');
 walk([[22.2,3.1],[22.45,3.6],[22.55,4.3],[22.7,5.0]], 'Bedroom 2'); peek('Bedroom 2');
 walk([[22.7,5.0],[22.5,4.2],[22.4,3.4],[22.35,2.6],[22.3,1.8],[22.4,0.9]], 'Bedroom 3'); peek('Bedroom 3');
-walk([[22.4,0.9],[22.3,1.8],[22.45,2.6],[23.0,2.9],[23.6,2.9],[24.2,2.65]], 'Bathroom'); peek('Bathroom');
 // stair 1 up (looking up as it climbs)
-walk([[24.2,2.65],[23.4,2.9],[22.3,2.95],[21.4,2.75],[20.75,2.3],[20.5,1.75],[20.5,1.3],[20.5,0.9],[20.2,0.75],[19.5,0.75],[17.9,0.75],[17.35,0.81],[17.1,1.1],[17.1,1.55],[17.1,2.25],[17.15,2.8]], 'Stair 1: 17 easy risers');
+walk([[22.4,0.9],[22.3,1.8],[22.2,2.55],[21.4,2.75],[20.75,2.3],[20.5,1.75],[20.5,1.3],[20.5,0.9],[20.2,0.75],[19.5,0.75],[17.9,0.75],[17.35,0.81],[17.1,1.1],[17.1,1.55],[17.1,2.25],[17.15,2.8]], 'Stair 1: 17 easy risers');
 // first floor
 walk([[17.15,2.8],[17.6,3.05],[19.2,3.05],[19.95,3.3],[20.0,4.1],[19.0,4.95],[17.7,6.2],[17.5,7.7]], 'Main bedroom: Juliet balcony');
 walk([[17.5,7.7],[17.3,6.8],[17.9,5.8],[19.4,5.55],[20.6,5.4],[21.5,5.4],[22.5,5.4]], 'En-suite and dressing'); peek('En-suite and dressing');
 walk([[22.5,5.4],[21.5,5.4],[20.6,5.3],[20.1,4.6],[20.0,3.6],[20.1,3.0],[20.7,2.6],[21.6,2.35],[22.25,1.9],[22.3,1.1],[22.3,0.3]], 'Guest room / study'); peek('Guest room / study');
 walk([[22.3,0.3],[22.3,1.1],[22.15,1.9],[21.4,2.5],[20.2,2.7],[18.5,2.75],[17.3,2.6],[16.3,2.2],[15.7,1.6]], 'Reading snug');
 walk([[15.7,1.6],[15.2,1.65],[14.6,2.0],[13.4,2.3],[12.0,2.6],[11.2,3.4],[10.3,3.8],[9.6,3.75],[8.8,3.75],[7.6,3.75]], 'Games room, through to the left landing');
-walk([[7.6,3.75],[6.5,3.65],[6.05,3.2],[6.0,2.5],[6.0,1.8]], 'Family bathroom'); peek('Family bathroom');
-walk([[6.0,1.8],[6.0,2.6],[5.85,3.4],[5.2,3.95],[4.85,4.6],[4.7,5.4],[4.5,6.1]], 'Bedroom 4'); peek('Bedroom 4');
+walk([[7.6,3.75],[6.5,3.7],[5.3,3.9],[4.75,4.5],[4.7,5.4],[4.5,6.1]], 'Bedroom 4'); peek('Bedroom 4');
 walk([[4.5,6.1],[4.7,5.2],[4.6,4.35],[4.0,4.0],[3.3,4.0],[2.6,3.95]], 'Bedroom 5'); peek('Bedroom 5');
 // stair 2 down to the porch (looking down), out of the back door
 walk([[2.6,3.95],[3.5,4.0],[4.6,3.95],[6.4,3.75],[7.7,3.55],[8.5,3.3],[8.75,2.95],[8.75,2.5],[8.75,1.7],[8.75,1.05],[8.55,0.65],[8.1,0.55],[7.75,0.6],[7.4,0.7],[6.9,0.8],[6.5,1.2]], 'Stair 2: the hidden back stair');
@@ -451,21 +449,18 @@ let tourOn = false, tourSpeed = 1, spIdx = 0;
 const st = { i:0, s:0, t:0, feet:null, yaw:0, pitch:0, yawT:0, pitchT:0, base:0, lastFeet:0 };
 for (const S of SEGS) if (S.k === 'walk') { S.curve = new THREE.CatmullRomCurve3(S.pts.map(p => P(p[0], p[1], 0)), false, 'centripetal'); S.len = S.curve.getLength(); }
 const lerpAngle = (a, b, f) => { let d = ((b - a + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; return a + d * f; };
-const PEEK = [[0,0],[1.0,0.8],[1.35,0.8],[2.9,-0.8],[3.25,-0.8],[5.3,-Math.PI]];
+const PEEK = [[0,0],[1.0,0.75],[1.45,0.75],[5.9,-Math.PI]];
 function interp(K, t){ if (t <= K[0][0]) return K[0][1]; for (let i = 1; i < K.length; i++) if (t <= K[i][0]) { const [t0,v0] = K[i-1], [t1,v1] = K[i]; const u = (t - t0)/(t1 - t0); const e = u*u*(3-2*u); return v0 + (v1 - v0)*e; } return K[K.length-1][1]; }
 function begin(i){
   st.i = i; st.s = 0; st.t = 0; const S = SEGS[i];
   if (S.k === 'air') {
+    st.at = 0;
     const pts = S.pts.map(p => P(p[0], p[1], p[2])); if (S.fromHere) pts.unshift(camera.position.clone());
     S.curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal'); S.len = S.curve.getLength();
   }
   if (S.k === 'walk' && st.feet === null) { const p = S.curve.getPointAt(0); st.feet = groundAt(p, camera.position.y - EYE + 0.7) ?? (camera.position.y - EYE); }
   if (S.k === 'peek') {
-    st.base = st.yaw; st.peekSign = 1;
-    const N = SEGS[i+1];                       // turn back out on the side the route goes next
-    if (N && N.k === 'walk') { const p0 = N.curve.getPointAt(0), p1 = N.curve.getPointAt(Math.min(1, 1.0/N.len)), p2 = N.curve.getPointAt(Math.min(1, 3.5/N.len));
-      const ax = p1.x-p0.x, az = p1.z-p0.z, bx = p2.x-p1.x, bz = p2.z-p1.z; const cr = ax*bz - az*bx;   // >0: route bends right (scene coords)
-      st.peekSign = cr > 0 ? 1 : -1; }
+    st.base = st.yaw; st.peekSign = 1;   // always: brief look left, then one turn right to face out
   }
   ui('caption').textContent = S.cap;
 }
@@ -505,10 +500,12 @@ function tourStep(dt){
     st.t += dt * v; st.yaw = st.base + st.peekSign * interp(PEEK, st.t); st.pitch += (-0.04 - st.pitch) * Math.min(1, dt * 4);
     camera.rotation.set(st.pitch, st.yaw, 0, 'YXZ'); if (st.t >= PEEK[PEEK.length-1][0]) next();
   } else {
-    st.s += dt * 4.2 * v; const u = Math.min(1, st.s / S.len); const p = S.curve.getPointAt(u);
+    st.at = (st.at || 0) + dt * v;
+    const rem = S.len - st.s, ease = Math.min(1, 0.22 + st.at / 3.5) * Math.min(1, 0.18 + rem / 7);
+    st.s += dt * 4.0 * v * ease; const u = Math.min(1, st.s / S.len); const p = S.curve.getPointAt(u);
     camera.position.copy(p);
     const aimP = S.aim ? P(S.aim[0], S.aim[1], S.aim[2]) : P(13,3,3);
-    _m.lookAt(p, aimP, _up); _q.setFromRotationMatrix(_m); camera.quaternion.slerp(_q, 1 - Math.exp(-dt * 2.2));
+    _m.lookAt(p, aimP, _up); _q.setFromRotationMatrix(_m); camera.quaternion.slerp(_q, 1 - Math.exp(-dt * (0.7 + Math.min(1.1, st.at * 0.35))));
     _e.setFromQuaternion(camera.quaternion, 'YXZ'); st.yaw = _e.y; st.pitch = _e.x; st.feet = null;
     if (u >= 1) next();
   }
