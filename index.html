@@ -71,15 +71,19 @@ select{font:500 15px var(--body);padding:9px 10px;border-radius:5px;border:1px s
 button:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px);
   font-size:12.5px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;text-align:center}
-.caption{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(58px + env(safe-area-inset-bottom,0px));
+.caption{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom,0px));
   font:400 22px/1.2 var(--display);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 16px;max-width:calc(100vw - 32px);text-align:center}
 .tourbar{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:6px}
-.tourbar button{font:600 13px var(--body);padding:8px 12px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.tourbar{gap:8px}
+.tourbar button{font:600 17px var(--body);min-width:64px;min-height:48px;padding:10px 18px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.tourbar #tour-pause{background:var(--accent);color:var(--accent-ink);border-color:transparent;min-width:92px}
+.tourbar button:hover{filter:brightness(1.06)}
 #joy{position:fixed;left:max(24px,calc(env(safe-area-inset-left,0px) + 16px));bottom:calc(70px + env(safe-area-inset-bottom,0px));width:120px;height:120px;border-radius:50%;
   border:1px solid var(--line);background:var(--label);touch-action:none}
 #knob{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:var(--accent);opacity:.85}
 #loading{position:fixed;inset:0;display:grid;place-items:center;font:400 20px var(--display);color:var(--muted)}
 @media (max-width:520px){ .hint{font-size:11.5px;bottom:calc(10px + env(safe-area-inset-bottom,0px))} .caption{font-size:18px} }
+@media (max-width:640px){ .tourbar:not([hidden]) ~ .hint{display:none} }
 @media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto} }
 </style>
 </head>
@@ -470,8 +474,9 @@ let tourOn = false, tourSpeed = 1, spIdx = 0;
 const st = { i:0, s:0, t:0, feet:null, yaw:0, pitch:0, yawT:0, pitchT:0, base:0, lastFeet:0 };
 for (const S of SEGS) if (S.k === 'walk') { S.curve = new THREE.CatmullRomCurve3(S.pts.map(p => P(p[0], p[1], 0)), false, 'centripetal'); S.len = S.curve.getLength(); }
 const lerpAngle = (a, b, f) => { let d = ((b - a + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; return a + d * f; };
-const PEEK = [[0,0],[1.0,0.75],[1.45,0.75],[5.9,-Math.PI]];
+const PEEK = [[0,0],[0.6,0],[4.8,Math.PI]];          // pause, then one smooth half-turn towards the open side of the room
 function interp(K, t){ if (t <= K[0][0]) return K[0][1]; for (let i = 1; i < K.length; i++) if (t <= K[i][0]) { const [t0,v0] = K[i-1], [t1,v1] = K[i]; const u = (t - t0)/(t1 - t0); const e = u*u*(3-2*u); return v0 + (v1 - v0)*e; } return K[K.length-1][1]; }
+const _peekRC = new THREE.Raycaster();
 function begin(i){
   st.i = i; st.s = 0; st.t = 0; const S = SEGS[i];
   if (S.k === 'air') {
@@ -481,7 +486,11 @@ function begin(i){
   }
   if (S.k === 'walk' && st.feet === null) { const p = S.curve.getPointAt(0); st.feet = groundAt(p, camera.position.y - EYE + 0.7) ?? (camera.position.y - EYE); }
   if (S.k === 'peek') {
-    st.base = st.yaw; st.peekSign = 1;   // always: brief look left, then one turn right to face out
+    st.base = st.yaw;
+    // one turn only: towards whichever side of the room has more space (the wall you can already see is on the other side)
+    const o = camera.position.clone(), L = new THREE.Vector3(-Math.cos(st.yaw), 0, Math.sin(st.yaw)), R = L.clone().negate();
+    const room = dir => { _peekRC.set(o, dir); _peekRC.far = 9; const h = _peekRC.intersectObjects(live(solidM), false)[0]; return h ? h.distance : 9; };
+    st.peekSign = room(L) >= room(R) ? 1 : -1;
   }
   ui('caption').textContent = S.cap;
 }
